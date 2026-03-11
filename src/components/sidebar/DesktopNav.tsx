@@ -426,7 +426,7 @@ export default function DesktopNav({
                                         href="#"
                                         label="Sign out"
                                         icon={
-                                            <ArrowLeftEndOnRectangleIcon className="h-6 w-6 text-white/60" />
+                                            <ArrowLeftEndOnRectangleIcon className="text-danger-400 h-6 w-6" />
                                         }
                                         iconAlt="Sign out logo"
                                         platform="desktop"

@@ -118,7 +118,7 @@ export default function MobileTopNav({
                                     href="#"
                                     label="Sign out"
                                     icon={
-                                        <ArrowLeftEndOnRectangleIcon></ArrowLeftEndOnRectangleIcon>
+                                        <ArrowLeftEndOnRectangleIcon className="text-danger-400 h-6 w-6" />
                                     }
                                     iconAlt="Sign out logo"
                                     platform="desktop"
