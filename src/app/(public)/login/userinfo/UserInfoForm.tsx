@@ -5,6 +5,7 @@ import type React from 'react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { FormTextInput } from '@/components/ui/input/input';
+import { PhoneNumberInput } from '@/components/ui/input/PhoneNumberInput';
 import { Label } from '@/components/ui/label/label';
 import { useEffect, useRef, useState } from 'react';
 import { redirect, useSearchParams } from 'next/navigation';
@@ -227,17 +228,12 @@ export default function UserInfoForm() {
                                     <Label required={true} className="mb-2">
                                         Phone number
                                     </Label>
-                                    <FormTextInput
+                                    <PhoneNumberInput
                                         name="phone"
-                                        type="tel"
-                                        lazy
-                                        onLazyChange={(text) =>
-                                            setPhoneNumber(text as string)
+                                        onValueChange={(digits) =>
+                                            setPhoneNumber(digits)
                                         }
                                         required
-                                        placeholder="6048622113"
-                                        pattern="^(1|)[2-9]\d{2}[2-9]\d{6}$"
-                                        errorMsg="Not a valid phone number"
                                         disabled={isSubmitting}
                                     />
                                 </div>
