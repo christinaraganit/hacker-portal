@@ -357,7 +357,11 @@ export function ApiDropdown({
                                     listContainerRef.current?.querySelector<HTMLElement>(
                                         '[data-option]'
                                     );
-                                firstItem?.focus();
+                                if (firstItem) {
+                                    firstItem.focus();
+                                } else {
+                                    handleAddCustom();
+                                }
                             } else if (e.key === 'Escape') {
                                 setOpen(false);
                             }
