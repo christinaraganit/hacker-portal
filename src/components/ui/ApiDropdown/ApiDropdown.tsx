@@ -47,6 +47,8 @@ export function ApiDropdown({
 
     const debounceTimer = useRef<NodeJS.Timeout | null>(null);
     const scrollRef = useRef<HTMLDivElement | null>(null);
+    const listContainerRef = useRef<HTMLDivElement | null>(null);
+    const searchInputRef = useRef<HTMLInputElement | null>(null);
 
     const fetchOptions = useCallback(
         async (query: string, currentOffset: number) => {
@@ -173,12 +175,55 @@ export function ApiDropdown({
                         </div>
                     )}
 
-                {filteredChoices.map((option) => {
+                {filteredChoices.map((option, idx) => {
                     const selected = value === option.value;
                     return (
                         <label
                             key={option.value}
-                            className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-neutral-700/30"
+                            data-option
+                            tabIndex={0}
+                            role="option"
+                            aria-selected={selected}
+                            className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-neutral-700/30 focus:bg-neutral-700/30 focus:outline-none"
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    setValue(option.value);
+                                    onChange(option.value);
+                                    setOpen(false);
+                                } else if (e.key === 'ArrowDown') {
+                                    e.preventDefault();
+                                    const next = e.currentTarget
+                                        .nextElementSibling as HTMLElement;
+                                    if (next?.hasAttribute('data-option'))
+                                        next.focus();
+                                } else if (e.key === 'ArrowUp') {
+                                    e.preventDefault();
+                                    const prev = e.currentTarget
+                                        .previousElementSibling as HTMLElement;
+                                    if (prev?.hasAttribute('data-option')) {
+                                        prev.focus();
+                                    } else {
+                                        searchInputRef.current?.focus();
+                                    }
+                                } else if (e.key === 'Escape') {
+                                    setOpen(false);
+                                } else if (e.key === 'Tab') {
+                                    e.preventDefault();
+                                    const next = e.shiftKey
+                                        ? (e.currentTarget
+                                              .previousElementSibling as HTMLElement)
+                                        : (e.currentTarget
+                                              .nextElementSibling as HTMLElement);
+                                    if (next?.hasAttribute('data-option')) {
+                                        next.focus();
+                                    } else if (e.shiftKey) {
+                                        searchInputRef.current?.focus();
+                                    } else {
+                                        setOpen(false);
+                                    }
+                                }
+                            }}
                         >
                             <input
                                 type="radio"
@@ -190,6 +235,7 @@ export function ApiDropdown({
                                     setOpen(false);
                                 }}
                                 className="sr-only"
+                                tabIndex={-1}
                             />
 
                             <div
@@ -290,12 +336,32 @@ export function ApiDropdown({
             >
                 <div className="px-2 py-2 pb-1">
                     <input
+                        ref={searchInputRef}
                         required={required}
                         type="text"
                         placeholder="Search..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         autoFocus
+                        onKeyDown={(e) => {
+                            if (e.key === 'ArrowDown') {
+                                e.preventDefault();
+                                const firstItem =
+                                    listContainerRef.current?.querySelector<HTMLElement>(
+                                        '[data-option]'
+                                    );
+                                firstItem?.focus();
+                            } else if (e.key === 'Enter') {
+                                e.preventDefault();
+                                const firstItem =
+                                    listContainerRef.current?.querySelector<HTMLElement>(
+                                        '[data-option]'
+                                    );
+                                firstItem?.focus();
+                            } else if (e.key === 'Escape') {
+                                setOpen(false);
+                            }
+                        }}
                         className={cn(
                             'w-full rounded px-3 py-2 text-sm',
                             'border border-neutral-600/50 bg-neutral-700/40',
@@ -306,8 +372,12 @@ export function ApiDropdown({
                 </div>
 
                 <div
-                    ref={scrollRef}
+                    ref={(node) => {
+                        scrollRef.current = node;
+                        listContainerRef.current = node;
+                    }}
                     className="mt-2 max-h-80 overflow-y-auto px-1"
+                    role="listbox"
                 >
                     {resultList}
                 </div>

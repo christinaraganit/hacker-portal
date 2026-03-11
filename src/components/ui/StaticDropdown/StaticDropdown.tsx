@@ -52,6 +52,8 @@ export function StaticDropdown({
     const [selectedObject, setSelectedObject] =
         useState<StaticDropdownOption | null>(null);
     const isManualSwitchToOther = useRef(false);
+    const listContainerRef = useRef<HTMLDivElement | null>(null);
+    const searchInputRef = useRef<HTMLInputElement | null>(null);
 
     useEffect(() => {
         if (initialData !== undefined && initialData !== selectedValue) {
@@ -209,14 +211,33 @@ export function StaticDropdown({
                     {staticChoices.length > 10 && (
                         <div className="px-2 py-2 pb-1">
                             <input
+                                ref={searchInputRef}
                                 type="text"
                                 placeholder="Search..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
+                                autoFocus
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
                                         e.preventDefault();
-                                        handleAddCustom();
+                                        const firstItem =
+                                            listContainerRef.current?.querySelector<HTMLElement>(
+                                                '[data-option]'
+                                            );
+                                        if (firstItem) {
+                                            firstItem.focus();
+                                        } else {
+                                            handleAddCustom();
+                                        }
+                                    } else if (e.key === 'ArrowDown') {
+                                        e.preventDefault();
+                                        const firstItem =
+                                            listContainerRef.current?.querySelector<HTMLElement>(
+                                                '[data-option]'
+                                            );
+                                        firstItem?.focus();
+                                    } else if (e.key === 'Escape') {
+                                        setOpen(false);
                                     }
                                 }}
                                 className={cn(
@@ -237,7 +258,11 @@ export function StaticDropdown({
                         </div>
                     )}
 
-                    <div className="flex flex-col gap-1 px-1">
+                    <div
+                        ref={listContainerRef}
+                        className="flex flex-col gap-1 px-1"
+                        role="listbox"
+                    >
                         {searchResults.length === 0 &&
                             searchQuery.trim() === '' &&
                             !selectedValue && (
@@ -251,13 +276,73 @@ export function StaticDropdown({
                             return (
                                 <label
                                     key={`option-${option.value}-${idx}-${option.name}`}
-                                    className={containerClass(selected)}
+                                    data-option
+                                    tabIndex={0}
+                                    role="option"
+                                    aria-selected={selected}
+                                    className={cn(
+                                        containerClass(selected),
+                                        'focus:bg-neutral-700/30 focus:outline-none'
+                                    )}
+                                    onKeyDown={(e) => {
+                                        if (
+                                            e.key === 'Enter' ||
+                                            e.key === ' '
+                                        ) {
+                                            e.preventDefault();
+                                            handleToggle(option);
+                                        } else if (e.key === 'ArrowDown') {
+                                            e.preventDefault();
+                                            const next = e.currentTarget
+                                                .nextElementSibling as HTMLElement;
+                                            if (
+                                                next?.hasAttribute(
+                                                    'data-option'
+                                                )
+                                            )
+                                                next.focus();
+                                        } else if (e.key === 'ArrowUp') {
+                                            e.preventDefault();
+                                            const prev = e.currentTarget
+                                                .previousElementSibling as HTMLElement;
+                                            if (
+                                                prev?.hasAttribute(
+                                                    'data-option'
+                                                )
+                                            ) {
+                                                prev.focus();
+                                            } else {
+                                                searchInputRef.current?.focus();
+                                            }
+                                        } else if (e.key === 'Escape') {
+                                            setOpen(false);
+                                        } else if (e.key === 'Tab') {
+                                            e.preventDefault();
+                                            const next = e.shiftKey
+                                                ? (e.currentTarget
+                                                      .previousElementSibling as HTMLElement)
+                                                : (e.currentTarget
+                                                      .nextElementSibling as HTMLElement);
+                                            if (
+                                                next?.hasAttribute(
+                                                    'data-option'
+                                                )
+                                            ) {
+                                                next.focus();
+                                            } else if (e.shiftKey) {
+                                                searchInputRef.current?.focus();
+                                            } else {
+                                                setOpen(false);
+                                            }
+                                        }
+                                    }}
                                 >
                                     <input
                                         type="radio"
                                         checked={selected}
                                         onChange={() => handleToggle(option)}
                                         className="sr-only"
+                                        tabIndex={-1}
                                     />
                                     <div
                                         className={radioCircleClass(selected)}

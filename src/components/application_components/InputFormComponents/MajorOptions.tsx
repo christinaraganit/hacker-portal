@@ -59,6 +59,8 @@ export function MajorOptions({
 
     const debounceTimer = useRef<NodeJS.Timeout | null>(null);
     const scrollRef = useRef<HTMLDivElement | null>(null);
+    const listContainerRef = useRef<HTMLDivElement | null>(null);
+    const searchInputRef = useRef<HTMLInputElement | null>(null);
 
     useEffect(() => {
         if (initialData !== undefined) {
@@ -271,14 +273,33 @@ export function MajorOptions({
                 >
                     <div className="px-2 py-2 pb-1">
                         <input
+                            ref={searchInputRef}
                             type="text"
                             placeholder="Search..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
+                            autoFocus
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
                                     e.preventDefault();
-                                    handleAddCustom();
+                                    const firstItem =
+                                        listContainerRef.current?.querySelector<HTMLElement>(
+                                            '[data-option]'
+                                        );
+                                    if (firstItem) {
+                                        firstItem.focus();
+                                    } else {
+                                        handleAddCustom();
+                                    }
+                                } else if (e.key === 'ArrowDown') {
+                                    e.preventDefault();
+                                    const firstItem =
+                                        listContainerRef.current?.querySelector<HTMLElement>(
+                                            '[data-option]'
+                                        );
+                                    firstItem?.focus();
+                                } else if (e.key === 'Escape') {
+                                    setOpen(false);
                                 }
                             }}
                             className={cn(
@@ -291,7 +312,10 @@ export function MajorOptions({
                     </div>
 
                     <div
-                        ref={scrollRef}
+                        ref={(node) => {
+                            scrollRef.current = node;
+                            listContainerRef.current = node;
+                        }}
                         className="relative mt-2 max-h-[60vh] overflow-y-auto px-1"
                     >
                         {selectedObjects.length > 0 && (
@@ -360,13 +384,70 @@ export function MajorOptions({
                             {searchResults.map((major) => (
                                 <label
                                     key={major.value}
-                                    className="group flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-neutral-700/30"
+                                    data-option
+                                    tabIndex={0}
+                                    role="option"
+                                    aria-selected={false}
+                                    className="group flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-neutral-700/30 focus:bg-neutral-700/30 focus:outline-none"
+                                    onKeyDown={(e) => {
+                                        if (
+                                            e.key === 'Enter' ||
+                                            e.key === ' '
+                                        ) {
+                                            e.preventDefault();
+                                            handleToggle(major);
+                                        } else if (e.key === 'ArrowDown') {
+                                            e.preventDefault();
+                                            const next = e.currentTarget
+                                                .nextElementSibling as HTMLElement;
+                                            if (
+                                                next?.hasAttribute(
+                                                    'data-option'
+                                                )
+                                            )
+                                                next.focus();
+                                        } else if (e.key === 'ArrowUp') {
+                                            e.preventDefault();
+                                            const prev = e.currentTarget
+                                                .previousElementSibling as HTMLElement;
+                                            if (
+                                                prev?.hasAttribute(
+                                                    'data-option'
+                                                )
+                                            ) {
+                                                prev.focus();
+                                            } else {
+                                                searchInputRef.current?.focus();
+                                            }
+                                        } else if (e.key === 'Escape') {
+                                            setOpen(false);
+                                        } else if (e.key === 'Tab') {
+                                            e.preventDefault();
+                                            const next = e.shiftKey
+                                                ? (e.currentTarget
+                                                      .previousElementSibling as HTMLElement)
+                                                : (e.currentTarget
+                                                      .nextElementSibling as HTMLElement);
+                                            if (
+                                                next?.hasAttribute(
+                                                    'data-option'
+                                                )
+                                            ) {
+                                                next.focus();
+                                            } else if (e.shiftKey) {
+                                                searchInputRef.current?.focus();
+                                            } else {
+                                                setOpen(false);
+                                            }
+                                        }
+                                    }}
                                 >
                                     <input
                                         type="checkbox"
                                         checked={false}
                                         onChange={() => handleToggle(major)}
                                         className="sr-only"
+                                        tabIndex={-1}
                                     />
                                     <div className="flex size-5 min-w-5 shrink-0 items-center justify-center rounded border border-neutral-600 transition-colors group-hover:border-neutral-500" />
                                     <span className="w-40 min-w-0 flex-1 truncate text-base font-normal text-neutral-300">
