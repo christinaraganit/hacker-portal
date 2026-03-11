@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { Label } from '@/components/ui/label/label';
 import { FormTextInput, Input } from '@/components/ui/input/input';
+import { PhoneNumberInput } from '@/components/ui/input/PhoneNumberInput';
 import { UserData } from '@/server/routers/usersRouter';
 import { PencilIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
@@ -288,18 +289,12 @@ export default function ProfileContent({ userData }: ProfileContentProps) {
 
             <div className="space-y-2">
                 <Label required={true}>Phone Number</Label>
-                <FormTextInput
+                <PhoneNumberInput
                     key={`phone-${key}`}
-                    name="phone"
-                    type="tel"
-                    lazy
                     defaultValue={formData.phoneNumber}
-                    onLazyChange={(value) =>
-                        handleInputChange('phoneNumber', value)
+                    onValueChange={(digits) =>
+                        handleInputChange('phoneNumber', digits)
                     }
-                    placeholder="6048622113"
-                    pattern="^(1|)[2-9]\d{2}[2-9]\d{6}$"
-                    errorMsg="Not a valid phone number"
                     required
                     disabled={isSubmitting}
                 />
